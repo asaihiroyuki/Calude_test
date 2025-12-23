@@ -43,9 +43,10 @@ def fetch_fred_data(series_id, start_date='2000-01-01'):
 def create_manual_data():
     """
     手動で中央銀行の金利データを作成（FRED APIが使えない場合のフォールバック）
+    1980年から現在までの歴史的データを含む
     """
-    # 2015年から現在までの主要な金利変更ポイントのサンプルデータ
-    dates = pd.date_range(start='2015-01-01', end='2024-12-01', freq='ME')
+    # 1980年から現在までの主要な金利変更ポイントのサンプルデータ
+    dates = pd.date_range(start='1980-01-01', end='2024-12-01', freq='ME')
 
     data = {
         'US_FRB': [],
@@ -57,9 +58,31 @@ def create_manual_data():
         'Switzerland_SNB': []
     }
 
-    # 米国FRB - 2015年末から段階的利上げ、2020年ゼロ金利、2022年から急速利上げ
+    # 米国FRB - 1980年ボルカーショックから現在まで
     for date in dates:
-        if date < pd.Timestamp('2015-12-01'):
+        if date < pd.Timestamp('1982-01-01'):
+            # ボルカーショック期（1980-1982年）：超高金利でインフレ抑制
+            data['US_FRB'].append(15.0)
+        elif date < pd.Timestamp('1984-01-01'):
+            # 金利低下期
+            data['US_FRB'].append(9.0)
+        elif date < pd.Timestamp('1990-01-01'):
+            # 1980年代後半：中程度の金利
+            data['US_FRB'].append(7.0)
+        elif date < pd.Timestamp('1993-01-01'):
+            # 1990年代初頭の景気後退
+            data['US_FRB'].append(4.0)
+        elif date < pd.Timestamp('2001-01-01'):
+            # 1990年代：安定成長期
+            data['US_FRB'].append(5.5)
+        elif date < pd.Timestamp('2004-01-01'):
+            # ITバブル崩壊後の低金利
+            data['US_FRB'].append(1.5)
+        elif date < pd.Timestamp('2008-01-01'):
+            # 2004-2007年：利上げサイクル
+            data['US_FRB'].append(5.0)
+        elif date < pd.Timestamp('2015-12-01'):
+            # リーマンショック後のゼロ金利（2008-2015年）
             data['US_FRB'].append(0.25)
         elif date < pd.Timestamp('2016-12-01'):
             data['US_FRB'].append(0.50)
@@ -72,6 +95,7 @@ def create_manual_data():
         elif date < pd.Timestamp('2020-03-01'):
             data['US_FRB'].append(1.55)
         elif date < pd.Timestamp('2022-03-01'):
+            # コロナショック後のゼロ金利
             data['US_FRB'].append(0.10)
         elif date < pd.Timestamp('2022-12-01'):
             data['US_FRB'].append(3.00)
@@ -80,9 +104,34 @@ def create_manual_data():
         else:
             data['US_FRB'].append(5.40)
 
-    # ECB - 長期マイナス金利、2022年から利上げ
+    # ECB - 1999年設立、それ以前は主要欧州国の平均的な金利水準
     for date in dates:
-        if date < pd.Timestamp('2019-09-01'):
+        if date < pd.Timestamp('1985-01-01'):
+            # 1980年代初頭：欧州も高金利
+            data['ECB'].append(10.0)
+        elif date < pd.Timestamp('1990-01-01'):
+            # 1980年代後半
+            data['ECB'].append(6.0)
+        elif date < pd.Timestamp('1995-01-01'):
+            # 1990年代初頭
+            data['ECB'].append(8.0)
+        elif date < pd.Timestamp('1999-01-01'):
+            # ECB設立前
+            data['ECB'].append(4.0)
+        elif date < pd.Timestamp('2001-01-01'):
+            # ECB設立初期
+            data['ECB'].append(3.5)
+        elif date < pd.Timestamp('2008-01-01'):
+            # 2000年代
+            data['ECB'].append(2.5)
+        elif date < pd.Timestamp('2011-01-01'):
+            # リーマンショック後
+            data['ECB'].append(1.0)
+        elif date < pd.Timestamp('2014-06-01'):
+            # 欧州債務危機
+            data['ECB'].append(0.75)
+        elif date < pd.Timestamp('2019-09-01'):
+            # マイナス金利導入（2014年6月）
             data['ECB'].append(-0.40)
         elif date < pd.Timestamp('2022-07-01'):
             data['ECB'].append(-0.50)
@@ -93,18 +142,48 @@ def create_manual_data():
         else:
             data['ECB'].append(4.00)
 
-    # 日本BOJ - マイナス金利政策継続、2024年解除
+    # 日本BOJ - 1980年代から現在まで
     for date in dates:
-        if date < pd.Timestamp('2016-02-01'):
+        if date < pd.Timestamp('1990-01-01'):
+            # 1980年代：比較的高金利
+            data['Japan_BOJ'].append(5.0)
+        elif date < pd.Timestamp('1995-01-01'):
+            # バブル崩壊後の金利低下
+            data['Japan_BOJ'].append(3.0)
+        elif date < pd.Timestamp('1999-01-01'):
+            # 1990年代後半：さらなる金利低下
+            data['Japan_BOJ'].append(1.0)
+        elif date < pd.Timestamp('2008-01-01'):
+            # ゼロ金利政策（1999年〜）
+            data['Japan_BOJ'].append(0.10)
+        elif date < pd.Timestamp('2016-02-01'):
+            # 2000年代：超低金利継続
             data['Japan_BOJ'].append(0.10)
         elif date < pd.Timestamp('2024-03-01'):
+            # マイナス金利政策（2016年2月〜2024年3月）
             data['Japan_BOJ'].append(-0.10)
         else:
             data['Japan_BOJ'].append(0.10)
 
-    # 英国BOE
+    # 英国BOE - 1980年から現在まで
     for date in dates:
-        if date < pd.Timestamp('2020-03-01'):
+        if date < pd.Timestamp('1985-01-01'):
+            # 1980年代初頭：高金利
+            data['UK_BOE'].append(12.0)
+        elif date < pd.Timestamp('1990-01-01'):
+            # 1980年代後半
+            data['UK_BOE'].append(9.0)
+        elif date < pd.Timestamp('1993-01-01'):
+            # 1990年代初頭の不況
+            data['UK_BOE'].append(10.0)
+        elif date < pd.Timestamp('2000-01-01'):
+            # 1990年代後半
+            data['UK_BOE'].append(6.0)
+        elif date < pd.Timestamp('2008-01-01'):
+            # 2000年代
+            data['UK_BOE'].append(4.5)
+        elif date < pd.Timestamp('2020-03-01'):
+            # リーマンショック後〜コロナ前
             data['UK_BOE'].append(0.75)
         elif date < pd.Timestamp('2021-12-01'):
             data['UK_BOE'].append(0.10)
@@ -113,9 +192,25 @@ def create_manual_data():
         else:
             data['UK_BOE'].append(5.25)
 
-    # カナダ
+    # カナダ - 1980年から現在まで
     for date in dates:
-        if date < pd.Timestamp('2020-03-01'):
+        if date < pd.Timestamp('1985-01-01'):
+            # 1980年代初頭：高金利
+            data['Canada_BoC'].append(14.0)
+        elif date < pd.Timestamp('1990-01-01'):
+            # 1980年代後半
+            data['Canada_BoC'].append(8.0)
+        elif date < pd.Timestamp('1995-01-01'):
+            # 1990年代初頭
+            data['Canada_BoC'].append(7.0)
+        elif date < pd.Timestamp('2000-01-01'):
+            # 1990年代後半
+            data['Canada_BoC'].append(4.5)
+        elif date < pd.Timestamp('2008-01-01'):
+            # 2000年代
+            data['Canada_BoC'].append(3.5)
+        elif date < pd.Timestamp('2020-03-01'):
+            # リーマンショック後〜コロナ前
             data['Canada_BoC'].append(1.75)
         elif date < pd.Timestamp('2022-03-01'):
             data['Canada_BoC'].append(0.25)
@@ -124,10 +219,26 @@ def create_manual_data():
         else:
             data['Canada_BoC'].append(5.00)
 
-    # オーストラリア
+    # オーストラリア - 1980年から現在まで
     for date in dates:
-        if date < pd.Timestamp('2020-03-01'):
-            data['Australia_RBA'].append(0.75)
+        if date < pd.Timestamp('1985-01-01'):
+            # 1980年代初頭：高金利
+            data['Australia_RBA'].append(11.0)
+        elif date < pd.Timestamp('1990-01-01'):
+            # 1980年代後半
+            data['Australia_RBA'].append(13.0)
+        elif date < pd.Timestamp('1995-01-01'):
+            # 1990年代初頭の不況
+            data['Australia_RBA'].append(7.0)
+        elif date < pd.Timestamp('2000-01-01'):
+            # 1990年代後半
+            data['Australia_RBA'].append(5.0)
+        elif date < pd.Timestamp('2008-01-01'):
+            # 2000年代
+            data['Australia_RBA'].append(6.0)
+        elif date < pd.Timestamp('2020-03-01'):
+            # リーマンショック後〜コロナ前
+            data['Australia_RBA'].append(1.5)
         elif date < pd.Timestamp('2022-05-01'):
             data['Australia_RBA'].append(0.10)
         elif date < pd.Timestamp('2023-11-01'):
@@ -135,9 +246,28 @@ def create_manual_data():
         else:
             data['Australia_RBA'].append(4.35)
 
-    # スイス
+    # スイス - 1980年から現在まで
     for date in dates:
-        if date < pd.Timestamp('2022-06-01'):
+        if date < pd.Timestamp('1985-01-01'):
+            # 1980年代初頭
+            data['Switzerland_SNB'].append(5.0)
+        elif date < pd.Timestamp('1990-01-01'):
+            # 1980年代後半
+            data['Switzerland_SNB'].append(4.0)
+        elif date < pd.Timestamp('1995-01-01'):
+            # 1990年代初頭
+            data['Switzerland_SNB'].append(5.5)
+        elif date < pd.Timestamp('2000-01-01'):
+            # 1990年代後半
+            data['Switzerland_SNB'].append(2.0)
+        elif date < pd.Timestamp('2008-01-01'):
+            # 2000年代
+            data['Switzerland_SNB'].append(1.5)
+        elif date < pd.Timestamp('2015-01-01'):
+            # リーマンショック後
+            data['Switzerland_SNB'].append(0.25)
+        elif date < pd.Timestamp('2022-06-01'):
+            # マイナス金利政策（2015年〜）
             data['Switzerland_SNB'].append(-0.75)
         elif date < pd.Timestamp('2023-06-01'):
             data['Switzerland_SNB'].append(1.00)
@@ -164,7 +294,7 @@ def collect_central_bank_rates():
         'Switzerland_SNB': 'CHSNBPOL'  # スイス: Policy Rate
     }
 
-    start_date = '2010-01-01'
+    start_date = '1980-01-01'
     all_data = {}
 
     # データ取得を試みる
